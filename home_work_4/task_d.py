@@ -3,6 +3,7 @@ import argparse
 import sys
 import random
 import unittest
+from collections import defaultdict
 
 
 class TextGenerator(object):
@@ -37,12 +38,9 @@ class TextGenerator(object):
         curr_tuple = tuple(chain)
         if curr_tuple != () and len(token) > 0:
             if curr_tuple not in self.probabilities:
-                self.probabilities[curr_tuple] = {token: 1}
+                self.probabilities[curr_tuple] = defaultdict(int, {token: 1})
             else:
-                if token in self.probabilities[curr_tuple]:
-                    self.probabilities[curr_tuple][token] += 1
-                else:
-                    self.probabilities[curr_tuple][token] = 1
+                self.probabilities[curr_tuple][token] += 1
 
     def _init_chains(self, line_length):
         current_chains = []
@@ -50,7 +48,7 @@ class TextGenerator(object):
             current_chains.append([0, depth])
         return current_chains
 
-    def probabilities(self, only_words=True, line_history=True, only_freqs=False):
+    def compute_probabilities(self, only_words=True, line_history=True, only_freqs=False):
         # count token frequencies
         self.probabilities = {}
         current_chains = []
@@ -132,7 +130,14 @@ class TextGenerator(object):
                 new_left = window[0] + 1
                 new_right = window[1] + 1
                 window = [new_left, new_right]
-        print("".join(generated))
+        self.generated_text = "".join(generated)
+
+    def print_generated_text(self, filename=None):
+        if filename:
+            with open(filename, 'w') as out_file:
+                out_file.write(self.generated_text)
+        else:
+            print(self.generated_text)
 
 
 class TestTextGenerator(unittest.TestCase):
@@ -155,19 +160,19 @@ his birthday."""]
         self.assertEqual(tokens, true_tokens)
 
     def test_probabilities(self):
-        self.generator.probabilities(only_words=True)
+        self.generator.compute_probabilities(only_words=True)
         probs = self.generator.probabilities[('Harry',)]
         true_probs = {'Potter': 1.0}
         self.assertEqual(probs, true_probs)
 
     def test_probabilities_2(self):
-        self.generator.probabilities(only_words=True)
+        self.generator.compute_probabilities(only_words=True)
         probs = self.generator.probabilities
         for chain, tokens in probs.items():
             self.assertLess(sum(tokens.values()) - 1.0, 1e-10)
 
     def test_frequencies(self):
-        self.generator.probabilities(only_words=True, only_freqs=True)
+        self.generator.compute_probabilities(only_words=True, only_freqs=True)
         freqs = self.generator.probabilities[('Harry', 'Potter')]
         true_freqs = {'was': 1, 'felt': 1}
         self.assertEqual(freqs, true_freqs)
@@ -192,7 +197,7 @@ def main():
         for line in sys.stdin:
             text.append(line)
         generator = TextGenerator(text, args.depth)
-        generator.probabilities()
+        generator.compute_probabilities()
         generator.print_probabilities()
     elif function == 'generate':
         text = []
@@ -204,7 +209,7 @@ def main():
             for line in input():
                 text.append(line)
         generator = TextGenerator(text, args.depth)
-        generator.probabilities(only_words=False, line_history=False)
+        generator.compute_probabilities(only_words=False, line_history=False)
         generator.generate(args.size)
     elif function == 'test':
         unittest.main()
