@@ -106,6 +106,7 @@ class TextGenerator(object):
             if (random_number >= left_sum and random_number < right_sum):
                 return objects[i]
             left_sum = right_sum
+        return objects[0]
 
     def generate(self, size):
         generated = []
@@ -118,7 +119,6 @@ class TextGenerator(object):
                 chain = generated[left: right]
             if left == right or tuple(chain) not in self.probabilities:
                 chain = [""]
-            # print(chain)
             chain_probs = self.probabilities[tuple(chain)]
             objects = list(chain_probs.keys())
             distribution = [chain_probs[obj] for obj in objects]
@@ -178,43 +178,60 @@ his birthday."""]
         self.assertEqual(freqs, true_freqs)
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('function', type=str)
-    parser.add_argument('-d', '--depth', type=int, default=1)
-    parser.add_argument('-s', '--size', type=int, default=2)
-    parser.add_argument('-f', '--file', type=str)
-    args = parser.parse_args(input().split())
-    function = args.function
-    if function == 'tokenize':
-        string = input()
-        generator = TextGenerator()
-        tokens = generator.tokenize(string)
-        for token in tokens:
-            print(token)
-    elif function == 'probabilities':
-        text = []
+def exec_tokenize(args):
+    string = input()
+    generator = TextGenerator()
+    tokens = generator.tokenize(string)
+    for token in tokens:
+        print(token)
+
+
+def exec_probs(args):
+    text = []
+    for line in sys.stdin:
+        text.append(line)
+    generator = TextGenerator(text, args.depth)
+    generator.compute_probabilities()
+    generator.print_probabilities()
+
+
+def exec_generate(args):
+    text = []
+    if args.file:
+        f = open(args.file, 'r')
+        for line in f:
+            text.append(line)
+    else:
         for line in sys.stdin:
             text.append(line)
-        generator = TextGenerator(text, args.depth)
-        generator.compute_probabilities()
-        generator.print_probabilities()
-    elif function == 'generate':
-        text = []
-        if args.file:
-            f = open(args.file, 'r')
-            for line in f:
-                text.append(line)
-        else:
-            for line in input():
-                text.append(line)
-        generator = TextGenerator(text, args.depth)
-        generator.compute_probabilities(only_words=False, line_history=False)
-        generator.generate(args.size)
-    elif function == 'test':
-        unittest.main()
-    else:
-        print("Unknown option")
+    generator = TextGenerator(text, args.depth)
+    generator.compute_probabilities(only_words=False, line_history=False)
+    generator.generate(args.size)
+    generator.print_generated_text()
+
+
+def exec_tests(args):
+    unittest.main()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+    tokenize_parser = subparsers.add_parser('tokenize')
+    test_parser = subparsers.add_parser('test')
+    probabilities_parser = subparsers.add_parser('probabilities')
+    generate_parser = subparsers.add_parser('generate')
+
+    tokenize_parser.set_defaults(function=exec_tokenize)
+    test_parser.set_defaults(function=exec_tests)
+    probabilities_parser.add_argument('-d', '--depth', type=int, default=1)
+    probabilities_parser.set_defaults(function=exec_probs)
+    generate_parser.add_argument('-d', '--depth', type=int, default=1)
+    generate_parser.add_argument('-s', '--size', type=int, default=2)
+    generate_parser.add_argument('-f', '--file', type=str)
+    generate_parser.set_defaults(function=exec_generate)
+    args = parser.parse_args(input().split())
+    args.function(args)
 
 if __name__ == "__main__":
     main()
