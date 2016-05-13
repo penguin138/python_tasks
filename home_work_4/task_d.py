@@ -34,13 +34,14 @@ class TextGenerator(object):
             tokens.append(current_token)
         return tokens
 
+    def print_tokens(self, tokens):
+        for token in tokens:
+            print(token)
+
     def add_token(self, chain, token):
         curr_tuple = tuple(chain)
         if curr_tuple != () and len(token) > 0:
-            if curr_tuple not in self.probabilities:
-                self.probabilities[curr_tuple] = defaultdict(int, {token: 1})
-            else:
-                self.probabilities[curr_tuple][token] += 1
+            self.probabilities[curr_tuple][token] += 1
 
     def _init_chains(self, line_length):
         current_chains = []
@@ -50,7 +51,7 @@ class TextGenerator(object):
 
     def compute_probabilities(self, only_words=True, line_history=True, only_freqs=False):
         # count token frequencies
-        self.probabilities = {}
+        self.probabilities = defaultdict(lambda: defaultdict(int))
         current_chains = []
         if not line_history:
             self.text_tokens = [[x for item in self.text_tokens for x in item]]
@@ -106,6 +107,7 @@ class TextGenerator(object):
             if (random_number >= left_sum and random_number < right_sum):
                 return objects[i]
             left_sum = right_sum
+        # because it happens with zero probability it doesn't matter what to return
         return objects[0]
 
     def generate(self, size):
@@ -131,6 +133,7 @@ class TextGenerator(object):
                 new_right = window[1] + 1
                 window = [new_left, new_right]
         self.generated_text = "".join(generated)
+        return generated
 
     def print_generated_text(self, filename=None):
         if filename:
@@ -177,13 +180,17 @@ his birthday."""]
         true_freqs = {'was': 1, 'felt': 1}
         self.assertEqual(freqs, true_freqs)
 
+    def test_generate(self):
+        self.generator.compute_probabilities(only_words=True)
+        generated_text = self.generator.generate(3)
+        self.assertEqual(len(generated_text), 3)
+
 
 def exec_tokenize(args):
     string = input()
     generator = TextGenerator()
     tokens = generator.tokenize(string)
-    for token in tokens:
-        print(token)
+    generator.print_tokens(tokens)
 
 
 def exec_probs(args):
@@ -215,6 +222,7 @@ def exec_tests(args):
 
 
 def main():
+    """ asd. """
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
     tokenize_parser = subparsers.add_parser('tokenize')
