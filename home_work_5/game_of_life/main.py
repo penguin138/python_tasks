@@ -1,19 +1,20 @@
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.properties import BooleanProperty, NumericProperty
 from kivy.clock import Clock
+from kivy.uix.label import Label
 
 
 class LifeGame(BoxLayout):
     pause_pressed = BooleanProperty(True)
-    update_rate = NumericProperty()
+    update_rate = NumericProperty(60)
 
     def __init__(self, **kwargs):
         super(LifeGame, self).__init__(**kwargs)
-        blue = (0.55, 0.7, 0.92)
+        blue = (0.55, 0.7, 0.92, 0.5)
+        light_sky = (0.8, 1, 1, 0.5)
         self.field = self.read_field()
         self.updates_called = 1
 
@@ -42,20 +43,40 @@ class LifeGame(BoxLayout):
         self.grid = GridLayout(cols=len(self.field[0]), rows=len(self.field))
         for i, line in enumerate(self.field):
             for j, cell in enumerate(line):
-                btn = ToggleButton(background_disabled_down='', background_color=blue,
+                btn = ToggleButton(background_color=blue,
+                                   background_normal='',
                                    on_press=on_press_field_cell)
                 if cell == 1:
-                    btn = ToggleButton(background_disabled_down='',
-                                       background_color=blue, state='down',
+                    btn = ToggleButton(background_normal='',
+                                       background_color=blue,
+                                       state='down',
                                        on_press=on_press_field_cell)
                 btn.coordinates = (i, j)
                 self.grid.add_widget(btn)
         controls = BoxLayout(orientation='vertical', size_hint=(.25, 1))
-        start_btn = Button(text='start', on_press=on_press_start)
-        pause_btn = Button(text='pause', on_press=on_press_pause)
+        start_btn = ToggleButton(text='[b][color=2f4f4f]start[/color][/b]',
+                                 markup=True,
+                                 background_color=light_sky,
+                                 background_normal='',
+                                 group="game",
+                                 on_press=on_press_start, padding=(2, 2))
+        pause_btn = ToggleButton(text='[b][color=2f4f4f]pause[/color][/b]', markup=True,
+                                 background_color=light_sky,
+                                 background_normal='',
+                                 group="game",
+                                 on_press=on_press_pause)
+        rate_label = Label(text='[b][color=234f4f]Rate:[/color][/b]', markup=True,
+                           size_hint=(1, 0.5))
+        controls.add_widget(rate_label)
         for i in range(4):
-            rate_btn = ToggleButton(text="{}x".format(2**i), group="rate",
+            rate_btn = ToggleButton(text="[color=234f4f]{}x[/color]".format(2**i), group="rate",
+                                    markup=True,
+                                    background_color=light_sky,
+                                    background_normal='',
+                                    size_hint=(1, 0.5),
                                     on_press=wrap_on_press_rate(2**i))
+            if i == 0:
+                rate_btn.state = 'down'
             controls.add_widget(rate_btn)
         controls.add_widget(start_btn)
         controls.add_widget(pause_btn)
@@ -127,7 +148,7 @@ class LifeGame(BoxLayout):
     def read_field(self, filename="field.csv"):
         """
            Reads game of life field from file.
-           File is expected to be in csv format.
+           File is expected to be in csv format with whitespace delimiter.
         """
         grid = []
         with open(filename, 'r') as fin:
