@@ -8,6 +8,50 @@ from kivy.clock import Clock
 from kivy.uix.label import Label
 
 
+class GameOfLife(object):
+
+    def __init__(self, field):
+        self.field = field
+
+    def run_iteration(self):
+        """Computes one iteration of the game."""
+        height = len(self.field)
+        width = len(self.field[0])
+        new_field = []
+        for i in range(height):
+            new_line = []
+            for j in range(width):
+                new_line.append(self.update_cell(i, j))
+            new_field.append(new_line)
+        self.field = new_field
+        return new_field
+
+    def update_cell(self, i, j):
+        """ Computes cell (i,j) state for the next iteration."""
+        new_cell = 0
+        num_of_neighbours = self.num_of_neighbours(i, j)
+        if self.field[i][j]:
+            new_cell = int(num_of_neighbours == 2 or num_of_neighbours == 3)
+        else:
+            new_cell = int(num_of_neighbours == 3)
+        return new_cell
+
+    def num_of_neighbours(self, i, j):
+        """ Computes number of neighbours for cell
+            with coordinates (i,j)."""
+        height = len(self.field)
+        width = len(self.field[0])
+        sum_ = 0
+        p, q = 0, 0
+        for delta_i in [-1, 0, 1]:
+            for delta_j in [-1, 0, 1]:
+                p = (i + delta_i) % height
+                q = (j + delta_j) % width
+                sum_ += self.field[p][q]
+        sum_ -= self.field[i][j]
+        return sum_
+
+
 class LifeGame(BoxLayout):
     pause_pressed = BooleanProperty(True)
     update_rate = NumericProperty(60)
@@ -17,6 +61,7 @@ class LifeGame(BoxLayout):
     def __init__(self, **kwargs):
         super(LifeGame, self).__init__(**kwargs)
         self.field = self.read_field()
+        self.game = GameOfLife(self.field)
         self.updates_called = 1
 
         def on_press_pause(instance):
@@ -88,47 +133,10 @@ class LifeGame(BoxLayout):
         controls.add_widget(pause_btn)
         return controls
 
-    def run_iteration(self):
-        """Computes one iteration of the game."""
-        height = len(self.field)
-        width = len(self.field[0])
-        new_field = []
-        for i in range(height):
-            new_line = []
-            for j in range(width):
-                new_line.append(self.update_cell(i, j))
-            new_field.append(new_line)
-        self.field = new_field
-
-    def update_cell(self, i, j):
-        """ Computes cell (i,j) state for the next iteration."""
-        new_cell = 0
-        num_of_neighbours = self.num_of_neighbours(i, j)
-        if self.field[i][j]:
-            new_cell = int(num_of_neighbours == 2 or num_of_neighbours == 3)
-        else:
-            new_cell = int(num_of_neighbours == 3)
-        return new_cell
-
-    def num_of_neighbours(self, i, j):
-        """ Computes number of neighbours for cell
-            with coordinates (i,j)."""
-        height = len(self.field)
-        width = len(self.field[0])
-        sum_ = 0
-        p, q = 0, 0
-        for delta_i in [-1, 0, 1]:
-            for delta_j in [-1, 0, 1]:
-                p = (i + delta_i) % height
-                q = (j + delta_j) % width
-                sum_ += self.field[p][q]
-        sum_ -= self.field[i][j]
-        return sum_
-
     def update_grid(self, dt):
         """ Computes one iteration of the game and updates UI every self.update_rate frames"""
         if not self.pause_pressed and self.updates_called % self.update_rate == 0:
-            self.run_iteration()
+            self.field = self.game.run_iteration()
             # self.print_field()
             height = len(self.field)
             width = len(self.field[0])
