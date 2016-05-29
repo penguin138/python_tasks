@@ -119,12 +119,8 @@ class LifeGame(BoxLayout):
         p, q = 0, 0
         for delta_i in [-1, 0, 1]:
             for delta_j in [-1, 0, 1]:
-                p = i + delta_i
-                q = j + delta_j
-                if p >= height:
-                    p = 0
-                if q >= width:
-                    q = 0
+                p = (i + delta_i) % height
+                q = (j + delta_j) % width
                 sum_ += self.field[p][q]
         sum_ -= self.field[i][j]
         return sum_
