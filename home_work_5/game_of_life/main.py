@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
@@ -44,6 +45,7 @@ class LifeGame(BoxLayout):
                 root = instance.parent.parent
                 root.update_rate = 60 // rate
             return on_press_rate
+
         self.grid = GridLayout(cols=len(self.field[0]), rows=len(self.field))
         for i, line in enumerate(self.field):
             for j, cell in enumerate(line):
@@ -57,17 +59,19 @@ class LifeGame(BoxLayout):
         controls = BoxLayout(orientation='vertical', size_hint=(.25, 1))
         start_btn = ToggleButton(text='[b][color=2f4f4f]start[/color][/b]', markup=True,
                                  background_color=light_sky, background_normal='',
-                                 group="game", on_press=on_press_start, padding=(2, 2))
+                                 group="game", on_press=on_press_start, padding=(2, 2),
+                                 allow_no_selection=False)
         pause_btn = ToggleButton(text='[b][color=2f4f4f]pause[/color][/b]', markup=True,
                                  background_color=light_sky, background_normal='', group="game",
-                                 on_press=on_press_pause)
+                                 on_press=on_press_pause, allow_no_selection=False)
         rate_label = Label(text='[b][color=234f4f]Rate:[/color][/b]', markup=True,
                            size_hint=(1, 0.5))
         controls.add_widget(rate_label)
         for i in range(4):
             rate_btn = ToggleButton(text="[color=234f4f]{}x[/color]".format(2**i), group="rate",
                                     markup=True, background_color=light_sky, background_normal='',
-                                    size_hint=(1, 0.5), on_press=wrap_on_press_rate(2**i))
+                                    size_hint=(1, 0.5), on_press=wrap_on_press_rate(2**i),
+                                    allow_no_selection=False)
             if i == 0:
                 rate_btn.state = 'down'
             controls.add_widget(rate_btn)
