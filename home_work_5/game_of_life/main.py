@@ -14,8 +14,8 @@ class LifeGame(BoxLayout):
 
     def __init__(self, **kwargs):
         super(LifeGame, self).__init__(**kwargs)
-        blue = (0.55, 0.7, 0.92, 0.5)
-        light_sky = (0.8, 1, 1, 0.5)
+        BLUE = (0.55, 0.7, 0.92, 0.5)
+        LIGHT_BLUE = (0.8, 1, 1, 0.5)
         self.field = self.read_field()
         self.updates_called = 1
 
@@ -49,27 +49,27 @@ class LifeGame(BoxLayout):
         self.grid = GridLayout(cols=len(self.field[0]), rows=len(self.field))
         for i, line in enumerate(self.field):
             for j, cell in enumerate(line):
-                btn = ToggleButton(background_color=blue, background_normal='',
+                btn = ToggleButton(background_color=BLUE, background_normal='',
                                    on_press=on_press_field_cell)
                 if cell == 1:
-                    btn = ToggleButton(background_normal='', background_color=blue, state='down',
+                    btn = ToggleButton(background_normal='', background_color=BLUE, state='down',
                                        on_press=on_press_field_cell)
                 btn.coordinates = (i, j)
                 self.grid.add_widget(btn)
         controls = BoxLayout(orientation='vertical', size_hint=(.25, 1))
         start_btn = ToggleButton(text='[b][color=2f4f4f]start[/color][/b]', markup=True,
-                                 background_color=light_sky, background_normal='',
+                                 background_color=LIGHT_BLUE, background_normal='',
                                  group="game", on_press=on_press_start, padding=(2, 2),
                                  allow_no_selection=False)
         pause_btn = ToggleButton(text='[b][color=2f4f4f]pause[/color][/b]', markup=True,
-                                 background_color=light_sky, background_normal='', group="game",
+                                 background_color=LIGHT_BLUE, background_normal='', group="game",
                                  on_press=on_press_pause, allow_no_selection=False)
         rate_label = Label(text='[b][color=234f4f]Rate:[/color][/b]', markup=True,
                            size_hint=(1, 0.5))
         controls.add_widget(rate_label)
         for i in range(4):
             rate_btn = ToggleButton(text="[color=234f4f]{}x[/color]".format(2**i), group="rate",
-                                    markup=True, background_color=light_sky, background_normal='',
+                                    markup=True, background_color=LIGHT_BLUE, background_normal='',
                                     size_hint=(1, 0.5), on_press=wrap_on_press_rate(2**i),
                                     allow_no_selection=False)
             if i == 0:
